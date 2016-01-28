@@ -4,17 +4,25 @@ import numpy as np
 from IPython import embed
 from pyqtgraph.Qt import QtCore, QtGui
 from pyqtgraph.dockarea import *
+import argparse
 
-experimentName='xpptut15'
-runNumber=54
-detectorName='cspad'
-evtNumber = 0
+parser = argparse.ArgumentParser()
+parser.add_argument("-e","--exp", help="experiment name (e.g. cxis0813)", type=str)
+parser.add_argument("-r","--run", help="run number (e.g. 5)", type=int)
+parser.add_argument("-d","--det", help="detector name (e.g. DscCsPad)", type=str)
+parser.add_argument("-n","--evt", help="event number (e.g. 1), default=0",default=0, type=int)
+parser.add_argument("--localCalib", help="use local calib directory, default=False", action='store_true')
+args = parser.parse_args()
 
-ds = psana.DataSource('exp='+experimentName+':run='+str(runNumber)+':idx')
-det = psana.Detector(detectorName, ds.env())
+if args.localCalib:
+    print "Using local calib directory"
+    psana.setOption('psana.calib-dir','./calib')
+
+ds = psana.DataSource('exp='+args.exp+':run='+str(args.run)+':idx')
+det = psana.Detector(args.det, ds.env())
 run = ds.runs().next()
 times = run.times()
-evt = run.event(times[evtNumber])
+evt = run.event(times[args.evt])
 
 nda = det.calib(evt)
 data = det.image(evt,nda)
@@ -26,8 +34,7 @@ pixelIndex.reshape(nda.shape)
 pixelIndex = det.image(evt,pixelIndex)
 
 ###
-
-## Add path to library (just for examples; you do not need this)
+print "Note: Pixel index order is from black to white. Except for better contrast, first pixel is in white and last pixel is in black."
 print "Note: The images are drawn with pyqtgraph. A matplotlib display will render pixels differently."
 app = QtGui.QApplication([])
 
