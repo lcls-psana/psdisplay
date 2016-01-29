@@ -5,6 +5,7 @@ from IPython import embed
 from pyqtgraph.Qt import QtCore, QtGui
 from pyqtgraph.dockarea import *
 import argparse
+import sys, signal
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-e","--exp", help="experiment name (e.g. cxis0813)", type=str)
@@ -18,6 +19,7 @@ if args.localCalib:
     print "Using local calib directory"
     psana.setOption('psana.calib-dir','./calib')
 
+print "Getting event: ", args.evt
 ds = psana.DataSource('exp='+args.exp+':run='+str(args.run)+':idx')
 det = psana.Detector(args.det, ds.env())
 run = ds.runs().next()
@@ -36,30 +38,36 @@ pixelIndex = det.image(evt,pixelIndex)
 ###
 print "Note: Pixel index order is from black to white. Except for better contrast, first pixel is in white and last pixel is in black."
 print "Note: The images are drawn with pyqtgraph. A matplotlib display will render pixels differently."
-app = QtGui.QApplication([])
 
-## Create window with ImageView widget
+class MainFrame(QtGui.QWidget):
+    """
+    The main frame of the application
+    """
+    def __init__(self, arg_list):
+        super(MainFrame, self).__init__()
 
-win = QtGui.QMainWindow()
-area = DockArea()
-win.resize(1300,1300)
-win.setCentralWidget(area)
+        self.win = QtGui.QMainWindow()
+        self.area = DockArea()
+        self.win.resize(1300,1300)
+        self.win.setCentralWidget(self.area)
+        self.win.setWindowTitle('ImageView')
+        self.d1 = Dock("Assembled image", size=(800, 800))
+        self.d2 = Dock("Pixel index (dark to light). Exception: First pixel is white, Last pixel is black", size=(800, 800))
+        self.area.addDock(self.d1, 'left')
+        self.area.addDock(self.d2, 'right')
+        self.w1 = pg.ImageView()
+        self.w1.setImage(data)
+        self.d1.addWidget(self.w1)
+        self.w2 = pg.ImageView()
+        self.w2.setImage(pixelIndex)
+        self.d2.addWidget(self.w2)
+        self.win.show()
 
-win.setWindowTitle('ImageView')
-d1 = Dock("Assembled image", size=(800, 800))
-d2 = Dock("Pixel index (dark to light). Exception: First pixel is white, Last pixel is black", size=(800, 800))
-area.addDock(d1, 'left')
-area.addDock(d2, 'right')
-w1 = pg.ImageView()#view=pg.PlotItem())
-w1.setImage(data)
-d1.addWidget(w1)
-w2 = pg.ImageView()#view=pg.PlotItem())
-w2.setImage(pixelIndex)
-d2.addWidget(w2)
-win.show()
+def main():
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    app = QtGui.QApplication(sys.argv)
+    ex = MainFrame(sys.argv)
+    sys.exit(app.exec_())
 
-## Start Qt event loop unless running in interactive mode.
 if __name__ == '__main__':
-    import sys
-    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
+    main()
