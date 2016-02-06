@@ -30,9 +30,12 @@ nda = det.calib(evt)
 data = det.image(evt,nda)
 
 pixelIndex = np.arange(1,nda.size+1)
-pixelIndex[0] = np.max(pixelIndex)
-pixelIndex[-1] = np.min(pixelIndex)
-pixelIndex.reshape(nda.shape)
+minVal = np.min(pixelIndex)
+maxVal = np.max(pixelIndex)
+pixelIndex[-1] = minVal
+pixelIndex[0] = maxVal
+pixelIndex = pixelIndex.reshape(nda.shape)
+
 pixelIndex = det.image(evt,pixelIndex)
 
 ###
