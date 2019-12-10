@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyqtgraph as pg
 import psana
 import numpy as np
@@ -16,10 +17,10 @@ parser.add_argument("--localCalib", help="use local calib directory, default=Fal
 args = parser.parse_args()
 
 if args.localCalib:
-    print "Using local calib directory"
+    print("Using local calib directory")
     psana.setOption('psana.calib-dir','./calib')
 
-print "Getting event: ", args.evt
+print("Getting event: ", args.evt)
 ds = psana.DataSource('exp='+args.exp+':run='+str(args.run)+':idx')
 det = psana.Detector(args.det, ds.env())
 run = ds.runs().next()
@@ -39,8 +40,8 @@ pixelIndex = pixelIndex.reshape(nda.shape)
 pixelIndex = det.image(evt,pixelIndex)
 
 ###
-print "Note: Pixel index order is from black to white. Except for better contrast, first pixel is in white and last pixel is in black."
-print "Note: The images are drawn with pyqtgraph. A matplotlib display will render pixels differently."
+print("Note: Pixel index order is from black to white. Except for better contrast, first pixel is in white and last pixel is in black.")
+print("Note: The images are drawn with pyqtgraph. A matplotlib display will render pixels differently.")
 
 class MainFrame(QtGui.QWidget):
     """
