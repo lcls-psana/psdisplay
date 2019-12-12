@@ -23,7 +23,7 @@ if args.localCalib:
 print("Getting event: ", args.evt)
 ds = psana.DataSource('exp='+args.exp+':run='+str(args.run)+':idx')
 det = psana.Detector(args.det, ds.env())
-run = ds.runs().next()
+run = next(ds.runs())
 times = run.times()
 evt = run.event(times[args.evt])
 
